@@ -234,7 +234,9 @@ namespace KinopoiskAPIDataBase.Controllers
                         }
                         existingGenre.Add(genre["name"].Value<string>(), genreModel);
                     }
-                    
+
+                    if (await _context.MovieGenre.AnyAsync(m => m.Movie.KpId == movie.KpId && m.Genre.Value == genreModel.Value))
+                        continue;
                     _context.MovieGenre.Add(new MovieGenreModel()
                     {
                         Movie = movie,
