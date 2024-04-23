@@ -183,9 +183,9 @@ namespace KinopoiskAPIDataBase.Controllers
         public async Task<IActionResult> PutMovieFromAPI(int kpid)
         {
             JObject movieJson;
-            var existingPerson = await _context.Person.ToDictionaryAsync(v => v.KpId);
-            var existingGenre = await _context.Genre.ToDictionaryAsync(v => v.Value);
-            var existingRole = await _context.Role.ToDictionaryAsync(v => v.Value);
+            var existingPerson = new Dictionary<int, PersonModel>();
+            var existingGenre = new Dictionary<string, GenreModel>();
+            var existingRole = new Dictionary<string, ProfessionModel>();
 
             ApiHelper.InitializeClient();
             ApiHelper.ApiClient.DefaultRequestHeaders.Add("X-API-KEY", _configuration.GetValue<string>("ApiKey"));
@@ -249,7 +249,7 @@ namespace KinopoiskAPIDataBase.Controllers
             {
                 foreach (var person in persons)
                 {
-                    if (person == null) continue;
+                    if (person == null || existingPerson.ContainsKey(person["id"].Value<int>())) continue;
                     var personModel = existingPerson.GetValueOrDefault(person["id"].Value<int>());
                     if (personModel == null)
                     {
@@ -283,7 +283,9 @@ namespace KinopoiskAPIDataBase.Controllers
                         }
                         existingRole.Add(person["profession"].Value<string>(), roleModel);
                     }
-                    
+
+                    if (await _context.MovieActor.AnyAsync(m => m.Actor.KpId == personModel.KpId && m.Movie.KpId == movie.KpId && m.Role.Value == roleModel.Value))
+                        continue;
                     _context.MovieActor.Add(new MoviePersonModel()
                     {
                         Movie = movie,

@@ -40,7 +40,6 @@ namespace EFDataAccessLibrary.Models
         [Required]
         public int Length { get; set; }
 
-        [Required]
         public DateTime? ReleaseDate { get; set; } = null!;
 
         [Required]
