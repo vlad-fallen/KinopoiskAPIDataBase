@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using System.Linq.Dynamic.Core;
 
 namespace KinopoiskAPIDataBase.Controllers
 {
@@ -32,9 +32,19 @@ namespace KinopoiskAPIDataBase.Controllers
 
         [HttpGet("[action]")]
         [ResponseCache(Location = ResponseCacheLocation.Any, Duration = 60)]
-        public async Task<RestDTO<MovieModel[]>> Get(int pageIndex = 0, int pageSize = 0)
+        public async Task<RestDTO<MovieModel[]>> Get(
+                    int pageIndex = 0, 
+                    int pageSize = 10, 
+                    string? sortColumn = "Name",
+                    string? sortOrder = "ASC",
+                    string? filterQuery = null)
         {
-            var query = _context.Movie
+            var query = _context.Movie.AsQueryable();
+            if (!string.IsNullOrWhiteSpace(filterQuery))
+                query = query.Where(m => m.Name.Contains(filterQuery));
+            var recordCount = await query.CountAsync();
+            query = query
+                .OrderBy($"{sortColumn} {sortOrder}")
                 .Skip(pageIndex * pageSize)
                 .Take(pageSize);
 
@@ -43,7 +53,7 @@ namespace KinopoiskAPIDataBase.Controllers
                 Data = await query.ToArrayAsync(),
                 PageIndex = pageIndex,
                 PageSize = pageSize,
-                RecordCount = await _context.Movie.CountAsync(),
+                RecordCount = recordCount,
                 Links = new List<LinkDTO>
                 {
                     new LinkDTO(
