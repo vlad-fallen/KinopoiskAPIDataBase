@@ -32,7 +32,7 @@ namespace EFDataAccessLibrary.Migrations
 
                     b.Property<string>("Value")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(50)");
 
                     b.HasKey("Id");
 
@@ -48,7 +48,7 @@ namespace EFDataAccessLibrary.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.HasKey("MovieId", "GenreId");
 
@@ -66,7 +66,7 @@ namespace EFDataAccessLibrary.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -75,29 +75,32 @@ namespace EFDataAccessLibrary.Migrations
                     b.Property<int>("KpId")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime>("LastModifiedDate")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<int>("Length")
                         .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(100)");
 
                     b.Property<string>("OriginalName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(100)");
 
                     b.Property<double>("Rating")
                         .HasColumnType("double precision");
 
                     b.Property<DateTime?>("ReleaseDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("ReleaseYear")
                         .HasColumnType("integer");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(50)");
 
                     b.HasKey("Id");
 
@@ -115,8 +118,11 @@ namespace EFDataAccessLibrary.Migrations
                     b.Property<int>("RoleId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("Character")
+                        .HasColumnType("varchar(100)");
+
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.HasKey("MovieId", "ActorId", "RoleId");
 
@@ -124,7 +130,7 @@ namespace EFDataAccessLibrary.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("MovieActor");
+                    b.ToTable("MoviePersonRole");
                 });
 
             modelBuilder.Entity("EFDataAccessLibrary.Models.PersonModel", b =>
@@ -135,22 +141,25 @@ namespace EFDataAccessLibrary.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime?>("Birthday")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateOnly?>("Birthday")
+                        .HasColumnType("date");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("EnName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(100)");
 
                     b.Property<int>("KpId")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime>("LastModifiedDate")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(100)");
 
                     b.HasKey("Id");
 
@@ -167,11 +176,11 @@ namespace EFDataAccessLibrary.Migrations
 
                     b.Property<string>("Value")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(50)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Role");
+                    b.ToTable("Professions");
                 });
 
             modelBuilder.Entity("EFDataAccessLibrary.Models.MovieGenreModel", b =>

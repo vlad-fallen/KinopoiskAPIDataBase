@@ -20,9 +20,11 @@ namespace EFDataAccessLibrary.Models
         public int KpId { get; set; }
 
         [Required]
+        [Column(TypeName = "varchar(100)")]
         public string Name { get; set; } = null!;
 
         [Required]
+        [Column(TypeName = "varchar(100)")]
         public string OriginalName { get; set; } = null!;
 
         [Required]
@@ -35,15 +37,22 @@ namespace EFDataAccessLibrary.Models
         public int ReleaseYear { get; set; }
 
         [Required]
+        [Column(TypeName = "varchar(50)")]
         public string Type { get; set; } = null!;
 
         [Required]
         public int Length { get; set; }
 
+        [Column(TypeName = "timestamp without time zone")]
         public DateTime? ReleaseDate { get; set; } = null!;
 
         [Required]
+        [Column(TypeName = "timestamp without time zone")]
         public DateTime CreatedDate { get; set; }
+
+        [Required]
+        [Column(TypeName = "timestamp without time zone")]
+        public DateTime LastModifiedDate { get; set; }
 
         public ICollection<MoviePersonModel>? MoviePerson { get; set; }
 

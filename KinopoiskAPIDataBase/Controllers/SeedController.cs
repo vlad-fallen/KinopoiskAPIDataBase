@@ -78,7 +78,7 @@ namespace KinopoiskAPIDataBase.Controllers
                     ReleaseYear = record.Year ?? 0,
                     Type = record.Type?.ToLower() ?? "",
                     Length = record.Length ?? 0,
-                    ReleaseDate = record.ReleaseDate ?? now,
+                    ReleaseDate = record.ReleaseDate,
                     CreatedDate = now
                 };
                 _context.Movie.Add(movie);
@@ -101,7 +101,7 @@ namespace KinopoiskAPIDataBase.Controllers
                             {
                                 Name = namePerson,
                                 EnName = nameEnPerson,
-                                Birthday = DateTime.ParseExact(birthdayPerson, "yyyy.MM.dd", CultureInfo.InvariantCulture),
+                                Birthday = DateOnly.ParseExact(birthdayPerson, "yyyy.MM.dd", CultureInfo.InvariantCulture),
                                 CreatedDate = now
                             };
                             _context.Person.Add(person);
@@ -183,9 +183,9 @@ namespace KinopoiskAPIDataBase.Controllers
         public async Task<IActionResult> PutMovieFromAPI(int kpid)
         {
             JObject movieJson;
-            var existingPerson = new Dictionary<int, PersonModel>();
-            var existingGenre = new Dictionary<string, GenreModel>();
-            var existingRole = new Dictionary<string, ProfessionModel>();
+            var existingPerson = await _context.Person.ToDictionaryAsync(p => p.KpId);
+            var existingGenre = await _context.Genre.ToDictionaryAsync(v => v.Value);
+            var existingRole = await _context.Role.ToDictionaryAsync(v => v.Value);
 
             ApiHelper.InitializeClient();
             ApiHelper.ApiClient.DefaultRequestHeaders.Add("X-API-KEY", _configuration.GetValue<string>("ApiKey"));
@@ -196,21 +196,25 @@ namespace KinopoiskAPIDataBase.Controllers
             }
 
             var dateTimeNow = DateTime.Now;
-
-            var movie = new MovieModel()
+            var movie = await _context.Movie.FirstOrDefaultAsync(m => m.KpId == kpid);
+            if (movie == null)
             {
-                KpId = kpid,
-                Name = movieJson["name"]?.Value<string>() ?? string.Empty,
-                OriginalName = movieJson["alternativeName"]?.Value<string>() ?? string.Empty,
-                Rating = movieJson["rating"]?["kp"]?.Value<double>() ?? 0d,
-                Description = movieJson["description"]?.Value<string>() ?? string.Empty,
-                ReleaseYear = movieJson["year"]?.Value<int>() ?? 0,
-                Type = movieJson["type"]?.Value<string>() ?? string.Empty,
-                Length = movieJson["movieLength"]?.Value<int>() ?? 0,
-                ReleaseDate = movieJson["premiere"]?["world"]?.Value<DateTime>(),
-                CreatedDate = dateTimeNow,
-            };
-            _context.Movie.Add(movie);
+                movie = new MovieModel()
+                {
+                    KpId = kpid,
+                    Name = movieJson["name"]?.Value<string>() ?? string.Empty,
+                    OriginalName = movieJson["alternativeName"]?.Value<string>() ?? string.Empty,
+                    Rating = movieJson["rating"]?["kp"]?.Value<double>() ?? 0d,
+                    Description = movieJson["description"]?.Value<string>() ?? string.Empty,
+                    ReleaseYear = movieJson["year"]?.Value<int>() ?? 0,
+                    Type = movieJson["type"]?.Value<string>() ?? string.Empty,
+                    Length = movieJson["movieLength"]?.Value<int>() ?? 0,
+                    ReleaseDate = movieJson["premiere"]?["world"]?.Value<DateTime>(),
+                    CreatedDate = dateTimeNow,
+                };
+                _context.Movie.Add(movie);
+            }
+            
 
 
             var genres = movieJson["genres"];
@@ -223,15 +227,11 @@ namespace KinopoiskAPIDataBase.Controllers
                     var genreModel = existingGenre.GetValueOrDefault(genre["name"].Value<string>());
                     if (genreModel == null)
                     {
-                        genreModel = await _context.Genre.FirstOrDefaultAsync(v => v.Value == genre["name"].Value<string>());
-                        if (genreModel == null)
+                        genreModel = new GenreModel()
                         {
-                            genreModel = new GenreModel()
-                            {
-                                Value = genre["name"].Value<string>(),
-                            };
-                            _context.Genre.Add(genreModel);
-                        }
+                            Value = genre["name"].Value<string>(),
+                        };
+                        _context.Genre.Add(genreModel);
                         existingGenre.Add(genre["name"].Value<string>(), genreModel);
                     }
 
@@ -255,34 +255,26 @@ namespace KinopoiskAPIDataBase.Controllers
                     var personModel = existingPerson.GetValueOrDefault(person["id"].Value<int>());
                     if (personModel == null)
                     {
-                        personModel = await _context.Person.FirstOrDefaultAsync(v => v.KpId == person["id"].Value<int>());
-                        if (personModel == null)
+                        personModel = new PersonModel()
                         {
-                            personModel = new PersonModel()
-                            {
-                                KpId = person["id"].Value<int>(),
-                                Name = person["name"]?.Value<string>() ?? string.Empty,
-                                EnName = person["enName"]?.Value<string>() ?? string.Empty,
-                                Birthday = null,
-                                CreatedDate = dateTimeNow
-                            };
-                            _context.Person.Add(personModel);
-                        }
+                            KpId = person["id"].Value<int>(),
+                            Name = person["name"]?.Value<string>() ?? string.Empty,
+                            EnName = person["enName"]?.Value<string>() ?? string.Empty,
+                            Birthday = null,
+                            CreatedDate = dateTimeNow
+                        };
+                        _context.Person.Add(personModel);
                         existingPerson.Add(person["id"].Value<int>(), personModel);
                     }
                     
                     var roleModel = existingRole.GetValueOrDefault(person["profession"].Value<string>());
                     if (roleModel == null)
                     {
-                        roleModel = await _context.Role.FirstOrDefaultAsync(v => v.Value == person["profession"].Value<string>());
-                        if (roleModel == null)
+                        roleModel = new ProfessionModel()
                         {
-                            roleModel = new ProfessionModel()
-                            {
-                                Value = person["profession"].Value<string>(),
-                            };
-                            _context.Role.Add(roleModel);
-                        }
+                            Value = person["profession"].Value<string>(),
+                        };
+                        _context.Role.Add(roleModel);
                         existingRole.Add(person["profession"].Value<string>(), roleModel);
                     }
 
@@ -293,6 +285,7 @@ namespace KinopoiskAPIDataBase.Controllers
                         Movie = movie,
                         Actor = personModel,
                         Role = roleModel,
+                        Character = person["description"]?.Value<string>(),
                         CreatedDate = dateTimeNow
                     });
                 }

@@ -19,16 +19,22 @@ namespace EFDataAccessLibrary.Models
         public int KpId { get; set; }
 
         [Required]
+        [Column(TypeName = "varchar(100)")]
         public string Name { get; set; } = null!;
 
         [Required]
+        [Column(TypeName = "varchar(100)")]
         public string EnName { get; set; } = null!;
 
-        
-        public DateTime? Birthday { get; set; } = null!;
+        public DateOnly? Birthday { get; set; } = null!;
 
         [Required]
+        [Column(TypeName = "timestamp without time zone")]
         public DateTime CreatedDate { get; set; }
+
+        [Required]
+        [Column(TypeName = "timestamp without time zone")]
+        public DateTime LastModifiedDate { get; set; }
 
         public ICollection<MoviePersonModel>? MoviePerson { get; set; }
     }

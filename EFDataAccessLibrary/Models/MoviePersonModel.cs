@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace EFDataAccessLibrary.Models
 {
+    [Table("MoviePersonRole")]
     public class MoviePersonModel
     {
         [Key]
@@ -21,7 +23,11 @@ namespace EFDataAccessLibrary.Models
         [Required] 
         public int RoleId { get;set; }
 
+        [Column(TypeName = "varchar(100)")]
+        public string? Character { get; set; }
+
         [Required]
+        [Column(TypeName = "timestamp without time zone")]
         public DateTime CreatedDate { get; set; }
 
         public MovieModel? Movie { get; set; }
@@ -30,8 +36,5 @@ namespace EFDataAccessLibrary.Models
 
         public ProfessionModel? Role { get; set; }
 
-        //todo
-        //объединить три таблицы movie, person, profession / "moviepersonrole"
-        //
     }
 }

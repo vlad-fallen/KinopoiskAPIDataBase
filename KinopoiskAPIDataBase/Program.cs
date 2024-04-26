@@ -1,5 +1,6 @@
 using EFDataAccessLibrary.DataAccess;
 using KinopoiskAPIDataBase.Controllers;
+using KinopoiskAPIDataBase.Swagger;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -28,9 +29,11 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(/*opts =>
-    opts.ResolveConflictingActions(apiDesc => apiDesc.First()) //решает конфликт с дублированием путей для апи \ не рекомендуется так делать
-    */);
+builder.Services.AddSwaggerGen(options =>
+{
+    options.ParameterFilter<SortColumnFilter>();
+    options.ParameterFilter<SortOrderFilter>();
+});
 
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("Kinopoisk")));
 

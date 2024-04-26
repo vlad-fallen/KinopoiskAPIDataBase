@@ -16,6 +16,7 @@ namespace EFDataAccessLibrary.Models
         public int Id { get; set; }
 
         [Required]
+        [Column(TypeName = "varchar(50)")]
         public string Value { get; set; } = null!;
 
         public ICollection<MovieGenreModel>? MovieGenre { get; set; }

@@ -12,22 +12,22 @@ namespace EFDataAccessLibrary.Migrations
             migrationBuilder.AlterColumn<DateTime>(
                 name: "ReleaseDate",
                 table: "Movies",
-                type: "timestamp with time zone",
+                type: "timestamp without time zone",
                 nullable: true,
-                oldClrType: typeof(DateTime),
-                oldType: "timestamp with time zone");
+                oldClrType: typeof(DateOnly),
+                oldType: "date",
+                oldNullable: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<DateTime>(
+            migrationBuilder.AlterColumn<DateOnly>(
                 name: "ReleaseDate",
                 table: "Movies",
-                type: "timestamp with time zone",
-                nullable: false,
-                defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                type: "date",
+                nullable: true,
                 oldClrType: typeof(DateTime),
-                oldType: "timestamp with time zone",
+                oldType: "timestamp without time zone",
                 oldNullable: true);
         }
     }
