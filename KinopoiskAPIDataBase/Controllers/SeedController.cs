@@ -122,7 +122,7 @@ namespace KinopoiskAPIDataBase.Controllers
                             existingRole.Add(roleRecord, role);
                         }
 
-                        _context.MovieActor.Add(new MoviePersonModel()
+                        _context.MoviePerson.Add(new MoviePersonModel()
                         {
                             Movie = movie,
                             Actor = person,
@@ -278,9 +278,9 @@ namespace KinopoiskAPIDataBase.Controllers
                         existingRole.Add(person["profession"].Value<string>(), roleModel);
                     }
 
-                    if (await _context.MovieActor.AnyAsync(m => m.Actor.KpId == personModel.KpId && m.Movie.KpId == movie.KpId && m.Role.Value == roleModel.Value))
+                    if (await _context.MoviePerson.AnyAsync(m => m.Actor.KpId == personModel.KpId && m.Movie.KpId == movie.KpId && m.Role.Value == roleModel.Value))
                         continue;
-                    _context.MovieActor.Add(new MoviePersonModel()
+                    _context.MoviePerson.Add(new MoviePersonModel()
                     {
                         Movie = movie,
                         Actor = personModel,

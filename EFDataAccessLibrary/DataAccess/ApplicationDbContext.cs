@@ -77,7 +77,7 @@ namespace EFDataAccessLibrary.DataAccess
         public DbSet<PersonModel> Person => Set<PersonModel>();
         public DbSet<ProfessionModel> Role => Set<ProfessionModel>();
         public DbSet<GenreModel> Genre => Set<GenreModel>();
-        public DbSet<MoviePersonModel> MovieActor => Set<MoviePersonModel>();
+        public DbSet<MoviePersonModel> MoviePerson => Set<MoviePersonModel>();
         public DbSet<MovieGenreModel> MovieGenre => Set<MovieGenreModel>();
     }
 }

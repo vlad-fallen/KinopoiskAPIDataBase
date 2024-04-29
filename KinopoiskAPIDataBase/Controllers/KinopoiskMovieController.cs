@@ -5,9 +5,11 @@ using KinopoiskAPIDataBase.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.ComponentModel.DataAnnotations;
 using System.Linq.Dynamic.Core;
+using System.Runtime.CompilerServices;
 
 namespace KinopoiskAPIDataBase.Controllers
 {
@@ -34,20 +36,50 @@ namespace KinopoiskAPIDataBase.Controllers
 
         [HttpGet("[action]")]
         [ResponseCache(Location = ResponseCacheLocation.Any, Duration = 60)]
-        public async Task<RestDTO<MovieModel[]>> Get([FromQuery] RequestDTO<MovieDTO> input)
+        public async Task<RestDTO<MovieDTO[]>> Get([FromQuery] RequestDTO<MovieDTO> input)
         {
-            var query = _context.Movie.AsQueryable();
+            var q = from m in _context.Movie
+                    //join m in _context.Movie on mp.MovieId equals m.Id
+                    select new MovieDTO
+                    {
+                        KpId = m.KpId,
+                        Name = m.Name,
+                        OriginalName = m.OriginalName,
+                        Rating = m.Rating,
+                        Description = m.Description,
+                        Type = m.Type,
+                        Length = m.Length,
+                        Year = m.ReleaseYear,
+                        ReleaseDate = m.ReleaseDate,
+                        Genres = (from mg in _context.MovieGenre
+                                  join g in _context.Genre on mg.GenreId equals g.Id
+                                  where mg.MovieId == m.Id
+                                  select g.Value).ToList(),
+                        /*Persons = (from movieperson in _context.MoviePerson
+                                  join p in _context.Person on mp.ActorId equals p.Id
+                                  join r in _context.Role on mp.RoleId equals r.Id
+                                  where mp.MovieId == m.Id
+                                  select new PersonMovieDTO
+                                  {
+                                      KpId = p.KpId,
+                                      Name = p.Name,
+                                      EnName = p.EnName,
+                                      Character = mp.Character,
+                                  }).AsQueryable(),*/
+                    };
+
             if (!string.IsNullOrEmpty(input.FilterQuery))
-                query = query.Where(m => m.Name.Contains(input.FilterQuery));
-            var recordCount = await query.CountAsync();
-            query = query
+                q = q.Where(m => m.Name.Contains(input.FilterQuery));
+            var recordCount = await q.CountAsync();
+            q = q
                 .OrderBy($"{input.SortColumn} {input.SortOrder}")
                 .Skip(input.PageIndex * input.PageSize)
                 .Take(input.PageSize);
 
-            return new RestDTO<MovieModel[]>
+
+            return new RestDTO<MovieDTO[]>
             {
-                Data = await query.ToArrayAsync(),
+                Data = await q.ToArrayAsync(),
                 PageIndex = input.PageIndex,
                 PageSize = input.PageSize,
                 RecordCount = recordCount,
@@ -69,7 +101,7 @@ namespace KinopoiskAPIDataBase.Controllers
         public async Task<RestDTO<MovieModel?>> Post(MovieDTO model)
         {
             var movie = await _context.Movie
-                .Where(m => m.Id == model.Id)
+                .Where(m => m.KpId == model.KpId)
                 .FirstOrDefaultAsync();
 
             if (movie != null)
@@ -130,26 +162,47 @@ namespace KinopoiskAPIDataBase.Controllers
         {
             var query = _context.Movie;
 
-            var movie = _context.Movie.FirstOrDefault(m => m.KpId == kpid);
+            var movie = await _context.Movie.FirstOrDefaultAsync(m => m.KpId == kpid);
 
-            var persons = from mp in _context.MovieActor
+            var persons = from mp in _context.MoviePerson
                           join p in _context.Person on mp.ActorId equals p.Id
                           join r in _context.Role on mp.RoleId equals r.Id
                           where mp.MovieId == movie.Id
-                          select p;
+                          select new PersonMovieDTO { 
+                          KpId = p.KpId,
+                          Name = p.Name,
+                          EnName = p.EnName,
+                          Character = mp.Character,
+                          };
 
-            return new JsonResult(new
+            return Ok(new MovieDTO
             {
-                Name = movie.Name,
                 KpId = movie.KpId,
-                Description = movie.Description,
+                Name = movie.Name,
+                OriginalName = movie.OriginalName,
                 Rating = movie.Rating,
+                Description = movie.Description,
+                Year = movie.ReleaseYear,
                 Type = movie.Type,
                 Length = movie.Length,
-                ReleaseYear = movie.ReleaseYear,
                 ReleaseDate = movie.ReleaseDate,
-                Person = persons,
+                Persons = await persons.ToListAsync(),
             });
+
+            /*return new RestDTO<MovieDTO>
+            {
+                Data = new MovieDTO 
+                { 
+                    
+                },
+                Links = new List<LinkDTO>
+                {
+                    new LinkDTO(
+                        Url.Action(null, "Kinopoisk", null, Request.Scheme)!,
+                        "self",
+                        "GET"),
+                }
+            };*/
         }
 
         [HttpPut("[action]")]
@@ -169,8 +222,8 @@ namespace KinopoiskAPIDataBase.Controllers
                 CreatedDate = DateTime.Now,
             };
 
-            await _context.Movie.AddAsync(movie);
-            await _context.SaveChangesAsync();
+            //await _context.Movie.AddAsync(movie);
+            //await _context.SaveChangesAsync();
 
             return new RestDTO<MovieModel[]>
             {

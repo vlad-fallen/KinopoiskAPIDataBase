@@ -23,6 +23,7 @@ namespace KinopoiskAPIDataBase.DTO
         [DefaultValue(null)]
         public string? FilterQuery {  get; set; } = null;
 
+
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             var validator = new SortColumnValidatorAttribute(typeof(T));
