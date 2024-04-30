@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -9,10 +10,12 @@ using System.Threading.Tasks;
 namespace EFDataAccessLibrary.Models
 {
     [Table("Genre")]
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class GenreModel
     {
         [Key]
         [Required]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public int Id { get; set; }
 
         [Required]

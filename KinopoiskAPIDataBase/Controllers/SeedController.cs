@@ -33,6 +33,8 @@ namespace KinopoiskAPIDataBase.Controllers
             _configuration = configuration;
         }
 
+        /*---------------------------*/
+
         [HttpPut("[action]")]
         [ResponseCache(NoStore = true)]
         public async Task<IActionResult> PutFromCSV()
@@ -178,6 +180,8 @@ namespace KinopoiskAPIDataBase.Controllers
             });
         }
 
+        /*---------------------------*/
+
         [HttpPut("[action]/{kpid:int}")]
         [ResponseCache(NoStore = true)]
         public async Task<IActionResult> PutMovieFromAPI(int kpid)
@@ -211,6 +215,7 @@ namespace KinopoiskAPIDataBase.Controllers
                     Length = movieJson["movieLength"]?.Value<int>() ?? 0,
                     ReleaseDate = movieJson["premiere"]?["world"]?.Value<DateTime>(),
                     CreatedDate = dateTimeNow,
+                    LastModifiedDate = dateTimeNow,
                 };
                 _context.Movie.Add(movie);
             }
@@ -251,7 +256,10 @@ namespace KinopoiskAPIDataBase.Controllers
             {
                 foreach (var person in persons)
                 {
-                    if (person == null || existingPerson.ContainsKey(person["id"].Value<int>())) continue;
+                    /*if (person == null || existingPerson.ContainsKey(person["id"].Value<int>()))
+                    {
+
+                    }*/
                     var personModel = existingPerson.GetValueOrDefault(person["id"].Value<int>());
                     if (personModel == null)
                     {
@@ -261,7 +269,8 @@ namespace KinopoiskAPIDataBase.Controllers
                             Name = person["name"]?.Value<string>() ?? string.Empty,
                             EnName = person["enName"]?.Value<string>() ?? string.Empty,
                             Birthday = null,
-                            CreatedDate = dateTimeNow
+                            CreatedDate = dateTimeNow,
+                            LastModifiedDate = dateTimeNow,                            
                         };
                         _context.Person.Add(personModel);
                         existingPerson.Add(person["id"].Value<int>(), personModel);

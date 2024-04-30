@@ -27,20 +27,14 @@ namespace KinopoiskAPIDataBase.Controllers
             _logger = logger;
         }
 
-        /*[HttpGet]
-        public async Task<IActionResult> GetMovieById(int id)
-        {
-
-            return Ok();
-        }*/
+        /*---------------------------*/
 
         [HttpGet("[action]")]
         [ResponseCache(Location = ResponseCacheLocation.Any, Duration = 60)]
-        public async Task<RestDTO<MovieDTO[]>> Get([FromQuery] RequestDTO<MovieDTO> input)
+        public async Task<RestDTO<MovieModel[]>> Get([FromQuery] RequestDTO<MovieDTO> input)
         {
             var q = from m in _context.Movie
-                    //join m in _context.Movie on mp.MovieId equals m.Id
-                    select new MovieDTO
+                    select new MovieModel
                     {
                         KpId = m.KpId,
                         Name = m.Name,
@@ -49,23 +43,15 @@ namespace KinopoiskAPIDataBase.Controllers
                         Description = m.Description,
                         Type = m.Type,
                         Length = m.Length,
-                        Year = m.ReleaseYear,
+                        ReleaseYear = m.ReleaseYear,
                         ReleaseDate = m.ReleaseDate,
                         Genres = (from mg in _context.MovieGenre
                                   join g in _context.Genre on mg.GenreId equals g.Id
                                   where mg.MovieId == m.Id
-                                  select g.Value).ToList(),
-                        /*Persons = (from movieperson in _context.MoviePerson
-                                  join p in _context.Person on mp.ActorId equals p.Id
-                                  join r in _context.Role on mp.RoleId equals r.Id
-                                  where mp.MovieId == m.Id
-                                  select new PersonMovieDTO
+                                  select new GenreModel
                                   {
-                                      KpId = p.KpId,
-                                      Name = p.Name,
-                                      EnName = p.EnName,
-                                      Character = mp.Character,
-                                  }).AsQueryable(),*/
+                                      Value = g.Value,
+                                  }).ToList(),
                     };
 
             if (!string.IsNullOrEmpty(input.FilterQuery))
@@ -76,8 +62,7 @@ namespace KinopoiskAPIDataBase.Controllers
                 .Skip(input.PageIndex * input.PageSize)
                 .Take(input.PageSize);
 
-
-            return new RestDTO<MovieDTO[]>
+            return new RestDTO<MovieModel[]>
             {
                 Data = await q.ToArrayAsync(),
                 PageIndex = input.PageIndex,
@@ -87,7 +72,7 @@ namespace KinopoiskAPIDataBase.Controllers
                 {
                     new LinkDTO(
                         Url.Action(null, 
-                            "Kinopoisk", 
+                            "KinopoiskMovie", 
                             new {input.PageIndex, input.PageSize},
                             Request.Scheme)!,
                         "self",
@@ -96,9 +81,63 @@ namespace KinopoiskAPIDataBase.Controllers
             };
         }
 
-        [HttpPost("[action]")]
+        /*---------------------------*/
+
+        [HttpGet("[action]/{kpid:int}")]
+        [ResponseCache(Location = ResponseCacheLocation.Any, Duration = 60)]
+        public async Task<RestDTO<MovieModel?>> Get(int kpid)
+        {
+            var movieModel = await (from m in _context.Movie 
+                              where m.KpId == kpid
+                              select m).FirstOrDefaultAsync();
+
+            if (movieModel != null)
+            {
+                var persons = await (from mp in _context.MoviePerson
+                                   join p in _context.Person on mp.ActorId equals p.Id
+                                   where mp.MovieId == movieModel.Id
+                                   select new PersonModel
+                                   {
+                                       Id = p.Id,
+                                       KpId = p.KpId,
+                                       Name = p.Name,
+                                       EnName = p.EnName,
+                                       Description = mp.Character,
+                                   }).ToListAsync();
+
+                var genres = await (from mg in _context.MovieGenre
+                                    join g in _context.Genre on mg.GenreId equals g.Id
+                                    where mg.MovieId == movieModel.Id
+                                    select new GenreModel
+                                    {
+                                        Value = g.Value,
+                                    }).ToListAsync();
+
+                movieModel.Persons = persons;
+                movieModel.Genres = genres;
+            }
+
+            return new RestDTO<MovieModel?>
+            {
+                Data = movieModel,
+                Links = new List<LinkDTO>
+                {
+                    new LinkDTO(
+                        Url.Action(null,
+                            "KinopoiskMovie",
+                            kpid,
+                            Request.Scheme)!,
+                        "self",
+                        "GET"),
+                }
+            };
+        }
+
+        /*---------------------------*/
+
+        [HttpPut("[action]")]
         [ResponseCache(NoStore = true)]
-        public async Task<RestDTO<MovieModel?>> Post(MovieDTO model)
+        public async Task<RestDTO<MovieModel?>> Put(MovieDTO model)
         {
             var movie = await _context.Movie
                 .Where(m => m.KpId == model.KpId)
@@ -106,7 +145,26 @@ namespace KinopoiskAPIDataBase.Controllers
 
             if (movie != null)
             {
+                if (!string.IsNullOrEmpty(model.Name))
+                    movie.Name = model.Name;
+                if (!string.IsNullOrEmpty(model.OriginalName))
+                    movie.OriginalName = model.OriginalName;
+                if (!string.IsNullOrEmpty(model.Description))
+                    movie.Description = model.Description;
+                if (model.Rating.HasValue)
+                    movie.Rating = model.Rating.Value;
+                if (model.Year.HasValue)
+                    movie.ReleaseYear = model.Year.Value;
+                if (!string.IsNullOrEmpty(model.Type))
+                    movie.Type = model.Type;
+                if (model.Length.HasValue)
+                    movie.Length = model.Length.Value;
+                if (model.ReleaseDate.HasValue)
+                    movie.ReleaseDate = model.ReleaseDate.Value;
 
+                movie.LastModifiedDate = DateTime.Now;
+                _context.Movie.Update(movie);
+                await _context.SaveChangesAsync();
             }
 
             return new RestDTO<MovieModel?>
@@ -117,14 +175,16 @@ namespace KinopoiskAPIDataBase.Controllers
                     new LinkDTO(
                         Url.Action(
                             null,
-                            "Movie",
+                            "KinopoiskMovie",
                             model,
                             Request.Scheme)!,
                         "self",
-                        "POST")
+                        "PUT")
                 }
             };
         }
+
+        /*---------------------------*/
 
         [HttpDelete("[action]")]
         [ResponseCache(NoStore = true)]
@@ -147,7 +207,7 @@ namespace KinopoiskAPIDataBase.Controllers
                 {
                     new LinkDTO(
                         Url.Action(null,
-                            "Movie",
+                            "KinopoiskMovie",
                             id,
                             Request.Scheme)!,
                         "self",
@@ -155,6 +215,8 @@ namespace KinopoiskAPIDataBase.Controllers
                 }
             };
         }
+
+        /*---------------------------*/
 
         [HttpGet("[action]")]
         [ResponseCache(Location = ResponseCacheLocation.Any, Duration = 60)]
@@ -168,11 +230,10 @@ namespace KinopoiskAPIDataBase.Controllers
                           join p in _context.Person on mp.ActorId equals p.Id
                           join r in _context.Role on mp.RoleId equals r.Id
                           where mp.MovieId == movie.Id
-                          select new PersonMovieDTO { 
+                          select new PersonDTO { 
                           KpId = p.KpId,
                           Name = p.Name,
                           EnName = p.EnName,
-                          Character = mp.Character,
                           };
 
             return Ok(new MovieDTO
@@ -186,7 +247,6 @@ namespace KinopoiskAPIDataBase.Controllers
                 Type = movie.Type,
                 Length = movie.Length,
                 ReleaseDate = movie.ReleaseDate,
-                Persons = await persons.ToListAsync(),
             });
 
             /*return new RestDTO<MovieDTO>
@@ -204,6 +264,8 @@ namespace KinopoiskAPIDataBase.Controllers
                 }
             };*/
         }
+
+        /*---------------------------*/
 
         [HttpPut("[action]")]
         [ResponseCache(NoStore = true)]

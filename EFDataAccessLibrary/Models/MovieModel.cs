@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -10,6 +11,7 @@ using System.Threading.Tasks;
 namespace EFDataAccessLibrary.Models
 {
     [Table("Movies")]
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class MovieModel
     {
         [Key]
@@ -28,12 +30,14 @@ namespace EFDataAccessLibrary.Models
         public string OriginalName { get; set; } = null!;
 
         [Required]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public double Rating { get; set; }
 
         [Required]
         public string Description { get; set; } = null!;
 
         [Required]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public int ReleaseYear { get; set; }
 
         [Required]
@@ -41,6 +45,7 @@ namespace EFDataAccessLibrary.Models
         public string Type { get; set; } = null!;
 
         [Required]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public int Length { get; set; }
 
         [Column(TypeName = "timestamp without time zone")]
@@ -48,11 +53,24 @@ namespace EFDataAccessLibrary.Models
 
         [Required]
         [Column(TypeName = "timestamp without time zone")]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public DateTime CreatedDate { get; set; }
 
         [Required]
         [Column(TypeName = "timestamp without time zone")]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public DateTime LastModifiedDate { get; set; }
+
+        [NotMapped]
+        public string? Role { get; set; }
+
+        [NotMapped]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public ICollection<PersonModel>? Persons { get; set; }
+
+        [NotMapped]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public ICollection<GenreModel>? Genres { get; set; }
 
         public ICollection<MoviePersonModel>? MoviePerson { get; set; }
 
