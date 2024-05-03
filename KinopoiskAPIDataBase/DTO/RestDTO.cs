@@ -1,5 +1,8 @@
-﻿namespace KinopoiskAPIDataBase.DTO
+﻿using Newtonsoft.Json;
+
+namespace KinopoiskAPIDataBase.DTO
 {
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class RestDTO<T>
     {
         public List<LinkDTO> Links { get; set; } = new List<LinkDTO>();

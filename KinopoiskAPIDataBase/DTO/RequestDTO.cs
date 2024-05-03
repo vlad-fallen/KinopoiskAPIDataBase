@@ -11,7 +11,7 @@ namespace KinopoiskAPIDataBase.DTO
         public int PageIndex { get; set; } = 0;
 
         [DefaultValue(10)]
-        [Range(1, 100)]
+        [Range(1, 100, ErrorMessage = "The value must be between 1 and 100.")]
         public int PageSize { get; set; } = 10;
 
         [DefaultValue("Name")]

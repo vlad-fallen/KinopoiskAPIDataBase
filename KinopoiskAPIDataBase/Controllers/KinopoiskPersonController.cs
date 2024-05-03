@@ -1,5 +1,6 @@
 ﻿using EFDataAccessLibrary.DataAccess;
 using EFDataAccessLibrary.Models;
+using KinopoiskAPIDataBase.Attributes;
 using KinopoiskAPIDataBase.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -25,8 +26,34 @@ namespace KinopoiskAPIDataBase.Controllers
 
         [HttpGet]
         [ResponseCache(Location = ResponseCacheLocation.Any, Duration = 60)]
-        public async Task<RestDTO<PersonModel[]>> Get([FromQuery] RequestDTO<PersonDTO> input)
+        [ManualValidationFilter]
+        public async Task<ActionResult<RestDTO<PersonModel[]>>> Get([FromQuery] RequestDTO<PersonDTO> input)
         {
+            if (!ModelState.IsValid)
+            {
+                var details = new ValidationProblemDetails(ModelState);
+                details.Extensions["traceId"] = System.Diagnostics.Activity.Current?.Id ?? HttpContext.TraceIdentifier;
+
+                if (ModelState.Keys.Any(k => k == "PageSize"))
+                {
+                    details.Type = "https://tools.ietf.org/html/rfc7231#section-6.6.2";
+
+                    details.Status = StatusCodes.Status501NotImplemented;
+
+                    return new ObjectResult(details)
+                    {
+                        StatusCode = StatusCodes.Status501NotImplemented,
+                    };
+                }
+                else
+                {
+                    details.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1";
+                    details.Status = StatusCodes.Status400BadRequest;
+                    return new BadRequestObjectResult(details);
+
+                }
+            }
+
             var q = from p in _context.Person
                     select new PersonModel
                     {
