@@ -1,6 +1,6 @@
-﻿namespace KinopoiskAPIDataBase
+﻿namespace KinopoiskAPIDataBase.Constants
 {
-    public class Constants
+    public class ApiConstants
     {
         public const string ApiKeyHeaderName = "X-API-Key";
     }

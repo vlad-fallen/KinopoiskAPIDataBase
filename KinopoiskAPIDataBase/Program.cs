@@ -1,13 +1,40 @@
 using EFDataAccessLibrary.DataAccess;
+using KinopoiskAPIDataBase.Constants.Constants;
 using KinopoiskAPIDataBase.Controllers;
 using KinopoiskAPIDataBase.Swagger;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NpgsqlTypes;
+using Serilog;
+using Serilog.Events;
+using Serilog.Sinks.PostgreSQL;
+using Serilog.Sinks.PostgreSQL.ColumnWriters;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.ClearProviders()
+    .AddSimpleConsole()
+    .AddDebug();
+
+
+builder.Host.UseSerilog((ctx, lc) =>
+{
+    lc.ReadFrom.Configuration(ctx.Configuration);
+    var connectionString = ctx.Configuration.GetConnectionString("Kinopoisk");
+
+    lc.WriteTo.PostgreSQL(connectionString,
+        tableName: "LogEvents",
+        columnOptions: null,
+        restrictedToMinimumLevel: LogEventLevel.Information,
+        needAutoCreateTable: true,
+        appConfiguration: ctx.Configuration)
+    .MinimumLevel.Information()
+    .Enrich.FromLogContext();
+
+}, writeToProviders: true);
 
 // Add services to the container.
 
@@ -109,7 +136,12 @@ app.MapGet("/error",
         details.Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1";
         
         details.Status = StatusCodes.Status500InternalServerError;
-        
+
+        app.Logger.LogError(
+            CustomLogEvents.Error_Get,
+            exceptionHandler?.Error,
+            "An unhandled exception occured.");
+
         return Results.Problem(details);
     }); // возвращает страницу с ошибкой
 

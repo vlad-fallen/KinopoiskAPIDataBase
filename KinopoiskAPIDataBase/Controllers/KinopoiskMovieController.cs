@@ -1,6 +1,7 @@
 ﻿using EFDataAccessLibrary.DataAccess;
 using EFDataAccessLibrary.Models;
 using KinopoiskAPIDataBase.Attributes;
+using KinopoiskAPIDataBase.Constants.Constants;
 using KinopoiskAPIDataBase.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -33,6 +34,9 @@ namespace KinopoiskAPIDataBase.Controllers
         [ResponseCache(Location = ResponseCacheLocation.Any, Duration = 60)]
         public async Task<RestDTO<MovieModel[]>> Get([FromQuery] RequestDTO<MovieDTO> input)
         {
+            //_logger.LogInformation(, "Get method started.");
+            _logger.LogInformation(CustomLogEvents.KinopoiskMovieController_Get, "Get method started.");
+
             var q = from m in _context.Movie
                     select new MovieModel
                     {

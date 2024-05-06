@@ -36,7 +36,7 @@ namespace EFDataAccessLibrary.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Genre");
+                    b.ToTable("Genre", (string)null);
                 });
 
             modelBuilder.Entity("EFDataAccessLibrary.Models.MovieGenreModel", b =>
@@ -54,7 +54,7 @@ namespace EFDataAccessLibrary.Migrations
 
                     b.HasIndex("GenreId");
 
-                    b.ToTable("MovieGenre");
+                    b.ToTable("MovieGenre", (string)null);
                 });
 
             modelBuilder.Entity("EFDataAccessLibrary.Models.MovieModel", b =>
@@ -104,7 +104,7 @@ namespace EFDataAccessLibrary.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Movies");
+                    b.ToTable("Movies", (string)null);
                 });
 
             modelBuilder.Entity("EFDataAccessLibrary.Models.MoviePersonModel", b =>
@@ -130,7 +130,7 @@ namespace EFDataAccessLibrary.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("MoviePersonRole");
+                    b.ToTable("MoviePersonRole", (string)null);
                 });
 
             modelBuilder.Entity("EFDataAccessLibrary.Models.PersonModel", b =>
@@ -163,7 +163,7 @@ namespace EFDataAccessLibrary.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Persons");
+                    b.ToTable("Persons", (string)null);
                 });
 
             modelBuilder.Entity("EFDataAccessLibrary.Models.ProfessionModel", b =>
@@ -180,7 +180,7 @@ namespace EFDataAccessLibrary.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Professions");
+                    b.ToTable("Professions", (string)null);
                 });
 
             modelBuilder.Entity("EFDataAccessLibrary.Models.MovieGenreModel", b =>
